@@ -1,3 +1,5 @@
+import struct
+
 def decode(packet):
     """Decode a navdata packet."""
     offset = 0
@@ -59,4 +61,3 @@ def decode(packet):
                 #values[i] /= 1000
         data[id_nr] = values
     return data
-
