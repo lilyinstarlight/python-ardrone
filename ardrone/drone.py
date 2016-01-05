@@ -10,9 +10,6 @@ import ardrone.at
 import ardrone.network
 
 
-__author__ = "Bastian Venthur"
-
-
 class ARDrone(object):
     """ARDrone Class.
 
