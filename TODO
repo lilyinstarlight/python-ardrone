@@ -1,6 +1,6 @@
-move stuff to python2/3 at the same time
+add image callbacks
 implement logging
 add connection detection
 add ready stuff
 add navdata enumeration
-rewrite video thing to use OpenCV to speed stuff up
+convert image to PIL
