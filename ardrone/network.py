@@ -49,7 +49,7 @@ class ARDroneNetworkProcess(multiprocessing.Process):
                             # we consumed every packet from the socket and
                             # continue with the last one
                             break
-                    w, h, image, t = ardrone.video.read_picture(data)
+                    width, height, image = ardrone.video.decode(data)
                     self.video_pipe.send(image)
                 elif i == nav_socket:
                     while 1:
