@@ -7,6 +7,8 @@ import socket
 import threading
 import multiprocessing
 
+import PIL
+
 import ardrone.constant
 import ardrone.navdata
 import ardrone.video
@@ -50,7 +52,7 @@ class ARDroneNetworkProcess(multiprocessing.Process):
                             # continue with the last one
                             break
                     width, height, image = ardrone.video.decode(data)
-                    self.video_pipe.send(image)
+                    self.video_pipe.send(PIL.Image.frombuffer('RGB', (width, height), image))
                 elif i == nav_socket:
                     while 1:
                         try:
