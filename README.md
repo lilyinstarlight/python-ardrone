@@ -1,7 +1,7 @@
 python-ardrone
 ==============
 
-python-ardrone is a library to control the Parrot AR.Drone 2.0 over a network.
+python-ardrone is a Python library for controlling the Parrot AR.Drone 2.0 over a network.
 
 
 Usage
