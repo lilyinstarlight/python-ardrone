@@ -34,28 +34,50 @@ struct PaVE {
 	uint8_t reserved2[12]; //padding to align to 64 bytes
 };
 
+static PyObject * VideoDecodeError;
+
 static PyObject * video_decode(PyObject * self, PyObject * args);
 
 static PyMethodDef VideoMethods[] = {
 	{"decode",  video_decode, METH_VARARGS, "decode a PaVE video packet into an RGB image buffer"},
 	{NULL, NULL, 0, NULL}
 };
+#if PY_MAJOR_VERSION > 2
 
-static PyObject * VideoDecodeError;
+static struct PyModuleDef videomodule = {
+   PyModuleDef_HEAD_INIT,
+   "video",
+   NULL,
+   -1,
+   VideoMethods
+};
+#endif
 
 AVCodec * codec;
 AVCodecContext * context;
 AVFrame * frame;
-SwsContext * sws_context;
+struct SwsContext * sws_context;
 
+#if PY_MAJOR_VERSION > 2
+PyMODINIT_FUNC PyInit_video(void) {
+#else
 PyMODINIT_FUNC initvideo(void) {
+#endif
 	PyObject * module;
 
-	module = Py_InitModule("video", VideoMethods);
+#if PY_MAJOR_VERSION > 2
+	module = PyModule_Create(&videomodule);
+#else
+	module = Py_InitModule("ardrone.video", VideoMethods);
+#endif
 	if(module == NULL)
+#if PY_MAJOR_VERSION > 2
+		return NULL;
+#else
 		return;
+#endif
 
-	VideoDecodeError = PyErr_NewException("video.DecodeError", NULL, NULL);
+	VideoDecodeError = PyErr_NewException("ardrone.video.DecodeError", NULL, NULL);
 	Py_INCREF(VideoDecodeError);
 	PyModule_AddObject(module, "DecodeError", VideoDecodeError);
 
@@ -65,48 +87,71 @@ PyMODINIT_FUNC initvideo(void) {
 	codec = avcodec_find_decoder(AV_CODEC_ID_H264);
 	if(!codec) {
 		PyErr_SetString(VideoDecodeError, "could not find h.264 decoder");
+#if PY_MAJOR_VERSION > 2
+		return NULL;
+#else
 		return;
+#endif
 	}
 
 	context = avcodec_alloc_context3(codec);
 	if(!context) {
 		PyErr_NoMemory();
+#if PY_MAJOR_VERSION > 2
+		return NULL;
+#else
 		return;
+#endif
 	}
 
 	avcodec_get_context_defaults3(context, codec);
 	if(avcodec_open2(context, codec, NULL) < 0) {
 		PyErr_SetString(VideoDecodeError, "could not open h.264 codec");
+#if PY_MAJOR_VERSION > 2
+		return NULL;
+#else
 		return;
+#endif
 	}
 
 	frame = av_frame_alloc();
 	if(!frame) {
 		PyErr_NoMemory();
+#if PY_MAJOR_VERSION > 2
+		return NULL;
+#else
 		return;
+#endif
 	}
+#if PY_MAJOR_VERSION > 2
+
+	return module;
+#endif
 }
 
 static PyObject * video_decode(PyObject * self, PyObject * args) {
-	const char * data;
+	unsigned char * data;
 	int data_size;
 
 	struct PaVE header;
-	const char * payload;
+	unsigned char * payload;
 
 	AVPacket packet;
 
 	int got_frame;
 	int frame_size;
 
-	const char * image;
+	unsigned char * image;
 	int image_width;
 	int image_height;
+
+	unsigned char * image_data[1];
+	int image_linesize[1];
 
 	if(!PyArg_ParseTuple(args, "s#", &data, &data_size))
 		return NULL;
 
-	header = *data;
+	header = *((struct PaVE *)data);
 	payload = data + header.header_size;
 
 	if(memcmp(header.signature, "PaVE", 4) != 0) {
@@ -135,8 +180,11 @@ static PyObject * video_decode(PyObject * self, PyObject * args) {
 	image_width = frame->width;
 	image_height = frame->height;
 
-	sws_context = sws_getCachedContext(sws_context, context->width, context->height, AV_PIX_FMT_YUV420P, context->width, context->height, AV_PIX_FMT_BGR24, SWS_FAST_BILINEAR, 0, 0, 0);
-	sws_scale(sws_context, frame->data, frame->linesize, 0, frame->height, image, image_width);
+	image_data[0] = image;
+	image_linesize[0] = image_width;
 
-	return Py_BuildValue("iis#", image_width, image_height, image, image_size);
+	sws_context = sws_getCachedContext(sws_context, context->width, context->height, AV_PIX_FMT_YUV420P, context->width, context->height, AV_PIX_FMT_BGR24, SWS_FAST_BILINEAR, 0, 0, 0);
+	sws_scale(sws_context, (const unsigned char * const *)frame->data, frame->linesize, 0, frame->height, image_data, image_linesize);
+
+	return Py_BuildValue("iis#", image_width, image_height, image, image_width*image_height);
 }
