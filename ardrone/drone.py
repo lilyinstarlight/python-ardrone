@@ -20,9 +20,9 @@ class ARDrone(object):
     def __init__(self, host='192.168.1.1'):
         self.host = host
 
-        self.seq_nr = 1
-        self.timer_t = 0.2
-        self.com_watchdog_timer = threading.Timer(self.timer_t, self.commwdg)
+        self.sequence = 1
+        self.timer = 0.2
+        self.com_watchdog_timer = threading.Timer(self.timer, self.commwdg)
         self.lock = threading.Lock()
         self.speed = 0.2
         self.at(ardrone.at.config, 'general:navdata_demo', 'TRUE')
@@ -85,7 +85,7 @@ class ARDrone(object):
     def reset(self):
         """Toggle the drone's emergency state."""
         #TODO: fix later to use an enumerated type
-        self.at(ardrone.at.ref, False, 'drone_state' not in self.navdata or self.navdata['drone_state']['ctrl_state'] != 0)
+        self.at(ardrone.at.ref, False, 'state' not in self.navdata or self.navdata['state']['emergency'] != 0)
 
     def trim(self):
         """Flat trim the drone."""
@@ -107,9 +107,9 @@ class ARDrone(object):
         """
         self.lock.acquire()
         self.com_watchdog_timer.cancel()
-        cmd(self.host, self.seq_nr, *args, **kwargs)
-        self.seq_nr += 1
-        self.com_watchdog_timer = threading.Timer(self.timer_t, self.commwdg)
+        cmd(self.host, self.sequence, *args, **kwargs)
+        self.sequence += 1
+        self.com_watchdog_timer = threading.Timer(self.timer, self.commwdg)
         self.com_watchdog_timer.start()
         self.lock.release()
 
