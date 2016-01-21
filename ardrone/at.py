@@ -25,7 +25,7 @@ def ref(host, seq, takeoff, emergency=False):
         p += 0b1000000000
     if emergency:
         p += 0b0100000000
-    at(host, "REF", seq, [p])
+    at(host, 'REF', seq, [p])
 
 def pcmd(host, seq, progressive, lr, fb, vv, va):
     """
@@ -45,7 +45,7 @@ def pcmd(host, seq, progressive, lr, fb, vv, va):
     The above float values are a percentage of the maximum speed.
     """
     p = 1 if progressive else 0
-    at(host, "PCMD", seq, [p, float(lr), float(fb), float(vv), float(va)])
+    at(host, 'PCMD', seq, [p, float(lr), float(fb), float(vv), float(va)])
 
 def ftrim(host, seq):
     """
@@ -54,7 +54,7 @@ def ftrim(host, seq):
     Parameters:
     seq -- sequence number
     """
-    at(host, "FTRIM", seq, [])
+    at(host, 'FTRIM', seq, [])
 
 def zap(host, seq, stream):
     """
@@ -65,18 +65,18 @@ def zap(host, seq, stream):
     stream -- Integer: video stream to broadcast
     """
     # FIXME: improve parameters to select the modes directly
-    at(host, "ZAP", seq, [stream])
+    at(host, 'ZAP', seq, [stream])
 
 def config(host, seq, option, value):
     """Set configuration parameters of the drone."""
-    at(host, "CONFIG", seq, [str(option), str(value)])
+    at(host, 'CONFIG', seq, [str(option), str(value)])
 
 def comwdg(host, seq):
     """
     Reset communication watchdog.
     """
     # FIXME: no sequence number
-    at(host, "COMWDG", seq, [])
+    at(host, 'COMWDG', seq, [])
 
 def aflight(host, seq, flag):
     """
@@ -86,7 +86,7 @@ def aflight(host, seq, flag):
     seq -- sequence number
     flag -- Integer: 1: start flight, 0: stop flight
     """
-    at(host, "AFLIGHT", seq, [flag])
+    at(host, 'AFLIGHT', seq, [flag])
 
 def pwm(host, seq, m1, m2, m3, m4):
     """
@@ -123,7 +123,7 @@ def anim(host, seq, anim, d):
     anim -- Integer: animation to play
     d -- Integer: total duration in sections of the animation
     """
-    at(host, "ANIM", seq, [anim, d])
+    at(host, 'ANIM', seq, [anim, d])
 
 def at(host, command, seq, params):
     """
@@ -135,11 +135,11 @@ def at(host, command, seq, params):
     param_str = ''
     for p in params:
         if type(p) == int:
-            param_str += ",%d" % p
+            param_str += ',%d' % p
         elif type(p) == float:
-            param_str += ",%d" % f2i(p)
+            param_str += ',%d' % f2i(p)
         elif type(p) == str:
             param_str += ',"'+p+'"'
-    msg = "AT*%s=%i%s\r" % (command, seq, param_str)
+    msg = 'AT*%s=%i%s\r' % (command, seq, param_str)
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.sendto(msg, (host, ardrone.constant.COMMAND_PORT))
+    sock.sendto(msg.encode(), (host, ardrone.constant.COMMAND_PORT))

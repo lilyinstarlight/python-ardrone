@@ -4,7 +4,7 @@ def decode(packet):
     """Decode a navdata packet."""
     offset = 0
 
-    _ = struct.unpack_from("IIII", packet, offset)
+    _ = struct.unpack_from('IIII', packet, offset)
 
     state = dict()
     state['fly_mask']             = _[1]       & 1 # FLY MASK : (0) ardrone is landed, (1) ardrone is flying
@@ -43,22 +43,22 @@ def decode(packet):
     data['sequence'] = _[2]
     data['vision'] = _[3]
 
-    offset += struct.calcsize("IIII")
+    offset += struct.calcsize('IIII')
 
     while 1:
         try:
-            id_nr, size =  struct.unpack_from("HH", packet, offset)
-            offset += struct.calcsize("HH")
+            id_nr, size =  struct.unpack_from('HH', packet, offset)
+            offset += struct.calcsize('HH')
         except struct.error:
             break
 
         values = []
-        for i in range(size-struct.calcsize("HH")):
-            values.append(struct.unpack_from("c", packet, offset)[0])
-            offset += struct.calcsize("c")
+        for i in range(size-struct.calcsize('HH')):
+            values.append(struct.unpack_from('c', packet, offset)[0])
+            offset += struct.calcsize('c')
 
         if id_nr == 0:
-            values = struct.unpack_from("IIfffIfffI", "".join(values))
+            values = struct.unpack_from('IIfffIfffI', ''.join(values))
             values = dict(list(zip(['ctrl_state', 'battery', 'theta', 'phi', 'psi', 'altitude', 'vx', 'vy', 'vz', 'num_frames'], values)))
             for i in 'theta', 'phi', 'psi':
                 values[i] = int(values[i] / 1000)

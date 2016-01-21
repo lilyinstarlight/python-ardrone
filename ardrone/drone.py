@@ -25,8 +25,8 @@ class ARDrone(object):
         self.com_watchdog_timer = threading.Timer(self.timer_t, self.commwdg)
         self.lock = threading.Lock()
         self.speed = 0.2
-        self.at(ardrone.at.config, "general:navdata_demo", "TRUE")
-        self.at(ardrone.at.config, "control:altitude_max", "20000")
+        self.at(ardrone.at.config, 'general:navdata_demo', 'TRUE')
+        self.at(ardrone.at.config, 'control:altitude_max', '20000')
         self.video_pipe, video_pipe_other = multiprocessing.Pipe()
         self.nav_pipe, nav_pipe_other = multiprocessing.Pipe()
         self.com_pipe, com_pipe_other = multiprocessing.Pipe()
@@ -34,7 +34,7 @@ class ARDrone(object):
         self.network_process.start()
         self.ipc_thread = ardrone.network.IPCThread(self)
         self.ipc_thread.start()
-        self.image = ""
+        self.image = ''
         self.navdata = dict()
         self.time = 0
 

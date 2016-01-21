@@ -32,12 +32,12 @@ class ARDroneNetworkProcess(multiprocessing.Process):
         video_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         video_socket.setblocking(0)
         video_socket.bind(('', ardrone.constant.VIDEO_PORT))
-        video_socket.sendto("\x01\x00\x00\x00", (self.host, ardrone.constant.VIDEO_PORT))
+        video_socket.sendto(b'\x01\x00\x00\x00', (self.host, ardrone.constant.VIDEO_PORT))
 
         nav_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         nav_socket.setblocking(0)
         nav_socket.bind(('', ardrone.constant.NAVDATA_PORT))
-        nav_socket.sendto("\x01\x00\x00\x00", (self.host, ardrone.constant.NAVDATA_PORT))
+        nav_socket.sendto(b'\x01\x00\x00\x00', (self.host, ardrone.constant.NAVDATA_PORT))
 
         stopping = False
         while not stopping:
