@@ -2,7 +2,9 @@
 
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#if LIBAVUTIL_VERSION_MAJOR > 52
 #include <libavutil/frame.h>
+#endif
 #include <libswscale/swscale.h>
 
 struct PaVE {
@@ -114,7 +116,11 @@ PyMODINIT_FUNC initvideo(void) {
 #endif
 	}
 
+#if LIBAVUTIL_VERSION_MAJOR > 52
 	frame = av_frame_alloc();
+#else
+	frame = avcodec_alloc_frame();
+#endif
 	if(!frame) {
 		PyErr_NoMemory();
 #if PY_MAJOR_VERSION > 2
@@ -180,10 +186,12 @@ static PyObject * video_decode(PyObject * self, PyObject * args) {
 	image_width = frame->width;
 	image_height = frame->height;
 
+	image = (unsigned char *)av_malloc(avpicture_get_size(PIX_FMT_BGR24, image_width, image_height)*sizeof(uint8_t));
+
 	image_data[0] = image;
 	image_linesize[0] = image_width;
 
-	sws_context = sws_getCachedContext(sws_context, context->width, context->height, AV_PIX_FMT_YUV420P, context->width, context->height, AV_PIX_FMT_BGR24, SWS_FAST_BILINEAR, 0, 0, 0);
+	sws_context = sws_getCachedContext(sws_context, context->width, context->height, AV_PIX_FMT_YUV420P, context->width, context->height, AV_PIX_FMT_BGR24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
 	sws_scale(sws_context, (const unsigned char * const *)frame->data, frame->linesize, 0, frame->height, image_data, image_linesize);
 
 	return Py_BuildValue("iis#", image_width, image_height, image, image_width*image_height);
