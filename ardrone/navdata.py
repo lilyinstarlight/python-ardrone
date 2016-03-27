@@ -58,7 +58,7 @@ def decode(packet):
             offset += struct.calcsize('c')
 
         if id_nr == 0:
-            values = struct.unpack_from('IIfffIfffI', ''.join(values))
+            values = struct.unpack_from('IIfffIfffI', b''.join(values))
             values = dict(list(zip(['ctrl_state', 'battery', 'theta', 'phi', 'psi', 'altitude', 'vx', 'vy', 'vz', 'num_frames'], values)))
             for i in 'theta', 'phi', 'psi':
                 values[i] = int(values[i] / 1000)
