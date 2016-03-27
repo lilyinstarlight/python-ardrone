@@ -22,9 +22,9 @@ def ref(host, seq, takeoff, emergency=False):
     """
     p = 0b10001010101000000000000000000
     if takeoff:
-        p += 0b1000000000
+        p |= 0b1000000000
     if emergency:
-        p += 0b0100000000
+        p |= 0b0100000000
     at(host, 'REF', seq, [p])
 
 def pcmd(host, seq, progressive, lr, fb, vv, va):
@@ -94,13 +94,12 @@ def pwm(host, seq, m1, m2, m3, m4):
 
     Parameters:
     seq -- sequence number
-    m1 -- front left command
-    m2 -- fright right command
-    m3 -- back right command
-    m4 -- back left command
+    m1 -- Integer: front left command
+    m2 -- Integer: front right command
+    m3 -- Integer: back right command
+    m4 -- Integer: back left command
     """
-    # FIXME: what type do mx have?
-    pass
+    at(host, 'PWM', seq, [m1, m2, m3, m4])
 
 def led(host, seq, anim, f, d):
     """
@@ -109,10 +108,10 @@ def led(host, seq, anim, f, d):
     Parameters:
     seq -- sequence number
     anim -- Integer: animation to play
-    f -- ?: frequence in HZ of the animation
+    f -- Float: frequency in HZ of the animation
     d -- Integer: total duration in seconds of the animation
     """
-    pass
+    at(host, 'LED', seq, [anim, float(f), d])
 
 def anim(host, seq, anim, d):
     """
@@ -121,7 +120,7 @@ def anim(host, seq, anim, d):
     Parameters:
     seq -- sequcence number
     anim -- Integer: animation to play
-    d -- Integer: total duration in sections of the animation
+    d -- Integer: total duration in seconds of the animation
     """
     at(host, 'ANIM', seq, [anim, d])
 
@@ -132,14 +131,14 @@ def at(host, command, seq, params):
     seq -- the sequence number
     params -- a list of elements which can be either int, float or string
     """
-    param_str = ''
+    params_str = []
     for p in params:
         if type(p) == int:
-            param_str += ',%d' % p
+            params_str.append('{:d}'.format(p))
         elif type(p) == float:
-            param_str += ',%d' % f2i(p)
+            params_str.append('{:d}'.format(f2i(p)))
         elif type(p) == str:
-            param_str += ',"'+p+'"'
-    msg = 'AT*%s=%i%s\r' % (command, seq, param_str)
+            params_str.append('"{:s}"'.format(p))
+    msg = 'AT*{:s}={:d},{:s}\r'.format(command, seq, ','.join(param_str))
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.sendto(msg.encode(), (host, ardrone.constant.COMMAND_PORT))
