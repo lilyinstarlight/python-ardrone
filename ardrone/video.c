@@ -150,6 +150,7 @@ static PyObject * video_decode(PyObject * self, PyObject * args) {
 	unsigned char * image;
 	int image_width;
 	int image_height;
+	int image_size;
 
 	unsigned char * image_data[1];
 	int image_linesize[1];
@@ -186,17 +187,19 @@ static PyObject * video_decode(PyObject * self, PyObject * args) {
 	image_width = frame->width;
 	image_height = frame->height;
 
-	image = (unsigned char *)av_malloc(avpicture_get_size(PIX_FMT_BGR24, image_width, image_height)*sizeof(uint8_t));
+	image_size = avpicture_get_size(PIX_FMT_RGB24, image_width, image_height)*sizeof(uint8_t);
+
+	image = (unsigned char *)av_malloc(image_size);
 
 	image_data[0] = image;
-	image_linesize[0] = image_width;
+	image_linesize[0] = image_width*3;
 
-	sws_context = sws_getCachedContext(sws_context, context->width, context->height, AV_PIX_FMT_YUV420P, context->width, context->height, AV_PIX_FMT_BGR24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
+	sws_context = sws_getCachedContext(sws_context, context->width, context->height, AV_PIX_FMT_YUV420P, context->width, context->height, AV_PIX_FMT_RGB24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
 	sws_scale(sws_context, (const unsigned char * const *)frame->data, frame->linesize, 0, frame->height, image_data, image_linesize);
 
 #if PY_MAJOR_VERSION > 2
-	return Py_BuildValue("iiy#", image_width, image_height, image, image_width*image_height);
+	return Py_BuildValue("iiy#", image_width, image_height, image, image_size);
 #else
-	return Py_BuildValue("iis#", image_width, image_height, image, image_width*image_height);
+	return Py_BuildValue("iis#", image_width, image_height, image, image_size);
 #endif
 }

@@ -61,7 +61,7 @@ class ARDroneNetworkProcess(multiprocessing.Process):
                     try:
                         # decode the frame
                         width, height, image = ardrone.video.decode(data)
-                        self.video_pipe.send(PIL.Image.frombuffer('BGR', (width, height), image))
+                        self.video_pipe.send(PIL.Image.frombuffer('RGB', (width, height), image, 'raw', 'RGB', 0, 1))
                     except ardrone.video.DecodeError:
                         pass
                 elif i == nav_socket:
