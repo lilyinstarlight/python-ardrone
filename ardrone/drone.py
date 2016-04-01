@@ -2,9 +2,11 @@
 Python library for the AR.Drone.
 """
 
-
+import time
 import threading
 import multiprocessing
+
+import PIL.Image
 
 import ardrone.at
 import ardrone.network
@@ -34,7 +36,7 @@ class ARDrone(object):
         self.network_process.start()
         self.ipc_thread = ardrone.network.IPCThread(self)
         self.ipc_thread.start()
-        self.image = ''
+        self.image = PIL.Image.new('RGB', (640, 360))
         self.navdata = dict()
         self.time = 0
 
@@ -84,12 +86,20 @@ class ARDrone(object):
 
     def reset(self):
         """Toggle the drone's emergency state."""
-        #TODO: fix later to use an enumerated type
-        self.at(ardrone.at.ref, False, 'state' not in self.navdata or self.navdata['state']['emergency'] != 0)
+        self.at(ardrone.at.ref, False, True)
+        time.sleep(0.1)
+        self.at(ardrone.at.ref, False, False)
 
     def trim(self):
         """Flat trim the drone."""
         self.at(ardrone.at.ftrim)
+
+    def set_cam(self, cam):
+        """Set active camera.
+
+        Valid values are 0 for the front camera and 1 for the bottom camera
+        """
+        self.at(ardrone.at.config, 'video:video_channel', cam)
 
     def set_speed(self, speed):
         """Set the drone's speed.

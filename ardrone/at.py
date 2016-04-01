@@ -24,7 +24,7 @@ def ref(host, seq, takeoff, emergency=False):
     if takeoff:
         p |= 0b1000000000
     if emergency:
-        p |= 0b0100000000
+        p |= 0b100000000
     at(host, 'REF', seq, [p])
 
 def pcmd(host, seq, progressive, lr, fb, vv, va):
