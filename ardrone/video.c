@@ -34,7 +34,7 @@ struct PaVE {
 	uint8_t reserved1[2]; //padding to align to 48 bytes
 	uint32_t advertised_size; //size of advertised frame
 	uint8_t reserved2[12]; //padding to align to 64 bytes
-};
+} __attribute__ ((packed));
 
 static PyObject * VideoDecodeError;
 
@@ -194,5 +194,9 @@ static PyObject * video_decode(PyObject * self, PyObject * args) {
 	sws_context = sws_getCachedContext(sws_context, context->width, context->height, AV_PIX_FMT_YUV420P, context->width, context->height, AV_PIX_FMT_BGR24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
 	sws_scale(sws_context, (const unsigned char * const *)frame->data, frame->linesize, 0, frame->height, image_data, image_linesize);
 
+#if PY_MAJOR_VERSION > 2
+	return Py_BuildValue("iiy#", image_width, image_height, image, image_width*image_height);
+#else
 	return Py_BuildValue("iis#", image_width, image_height, image, image_width*image_height);
+#endif
 }
