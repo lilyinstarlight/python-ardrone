@@ -1,6 +1,7 @@
 TODO
 ====
 
+- reduce latency by always decoding i-frames and only decoding p-frames if they are in the buffer
 - add image callbacks
 - implement logging
 - add connection detection
