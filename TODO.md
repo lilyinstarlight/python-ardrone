@@ -1,6 +1,7 @@
 TODO
 ====
 
+- follow ar.drone developer guide (e.g. repeatedly send takeoff commands until they are acknowledged in a navdata)
 - reduce latency by always decoding i-frames and only decoding p-frames if they are in the buffer
 - add image callbacks
 - implement logging
