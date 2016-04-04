@@ -192,7 +192,7 @@ static PyObject * video_decode(PyObject * self, PyObject * args) {
 	image = (unsigned char *)av_malloc(image_size);
 
 	image_data[0] = image;
-	image_linesize[0] = image_width*3;
+	image_linesize[0] = image_size/image_height;
 
 	sws_context = sws_getCachedContext(sws_context, context->width, context->height, AV_PIX_FMT_YUV420P, context->width, context->height, AV_PIX_FMT_RGB24, SWS_FAST_BILINEAR, NULL, NULL, NULL);
 	sws_scale(sws_context, (const unsigned char * const *)frame->data, frame->linesize, 0, frame->height, image_data, image_linesize);
