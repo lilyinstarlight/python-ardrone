@@ -60,8 +60,8 @@ class ARDroneNetworkProcess(multiprocessing.Process):
 
                     try:
                         # decode the frame
-                        width, height, image = ardrone.video.decode(data)
-                        self.video_pipe.send(PIL.Image.frombuffer('RGB', (width, height), image, 'raw', 'RGB', 0, 1))
+                        image = ardrone.video.decode(data)
+                        self.video_pipe.send(image)
                     except ardrone.video.DecodeError:
                         pass
                 elif i == nav_socket:
@@ -100,8 +100,8 @@ class IPCThread(threading.Thread):
             for i in inputready:
                 if i == self.drone.video_pipe:
                     while self.drone.video_pipe.poll():
-                        image = self.drone.video_pipe.recv()
-                    self.drone.image = image
+                        width, height, image = self.drone.video_pipe.recv()
+                    self.drone.image = PIL.Image.frombuffer('RGB', (width, height), image, 'raw', 'RGB', 0, 1)
                 elif i == self.drone.nav_pipe:
                     while self.drone.nav_pipe.poll():
                         navdata = self.drone.nav_pipe.recv()
