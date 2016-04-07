@@ -155,6 +155,8 @@ static PyObject * video_decode(PyObject * self, PyObject * args) {
 	unsigned char * image_data[1];
 	int image_linesize[1];
 
+	PyObject * py_image;
+
 	if(!PyArg_ParseTuple(args, "s#", &data, &data_size))
 		return NULL;
 
@@ -198,8 +200,12 @@ static PyObject * video_decode(PyObject * self, PyObject * args) {
 	sws_scale(sws_context, (const unsigned char * const *)frame->data, frame->linesize, 0, frame->height, image_data, image_linesize);
 
 #if PY_MAJOR_VERSION > 2
-	return Py_BuildValue("iiy#", image_width, image_height, image, image_size);
+	py_image = Py_BuildValue("iiy#", image_width, image_height, image, image_size);
 #else
-	return Py_BuildValue("iis#", image_width, image_height, image, image_size);
+	py_image = Py_BuildValue("iis#", image_width, image_height, image, image_size);
 #endif
+
+	av_free(image);
+
+	return py_image;
 }
