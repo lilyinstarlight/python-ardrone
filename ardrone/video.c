@@ -189,7 +189,7 @@ static PyObject * video_decode(PyObject * self, PyObject * args) {
 	image_width = frame->width;
 	image_height = frame->height;
 
-	image_size = avpicture_get_size(PIX_FMT_RGB24, image_width, image_height)*sizeof(uint8_t);
+	image_size = avpicture_get_size(AV_PIX_FMT_RGB24, image_width, image_height)*sizeof(uint8_t);
 
 	image = (unsigned char *)av_malloc(image_size);
 
