@@ -115,13 +115,12 @@ class ARDrone(object):
         at command and the watchdog timer is started to make sure the drone
         receives a command at least every second.
         """
-        self.lock.acquire()
-        self.com_watchdog_timer.cancel()
-        cmd(self.host, self.sequence, *args, **kwargs)
-        self.sequence += 1
-        self.com_watchdog_timer = threading.Timer(self.timer, self.commwdg)
-        self.com_watchdog_timer.start()
-        self.lock.release()
+        with self.lock:
+            self.com_watchdog_timer.cancel()
+            cmd(self.host, self.sequence, *args, **kwargs)
+            self.sequence += 1
+            self.com_watchdog_timer = threading.Timer(self.timer, self.commwdg)
+            self.com_watchdog_timer.start()
 
     def commwdg(self):
         """Communication watchdog signal.
@@ -139,14 +138,12 @@ class ARDrone(object):
         application to close all sockets, pipes, processes and threads related
         with this object.
         """
-        self.lock.acquire()
-        self.com_watchdog_timer.cancel()
-        self.com_pipe.send('die!')
-        self.network_process.terminate()
-        self.network_process.join()
-        self.ipc_thread.stop()
-        self.ipc_thread.join()
-        self.lock.release()
+        with self.lock:
+            self.com_watchdog_timer.cancel()
+            self.video_thread.stop()
+            self.video_thread.join()
+            self.navdata_thread.stop()
+            self.navdata_thread.join()
 
     def move(self, lr, fb, vv, va):
         """Makes the drone move (translate/rotate).
