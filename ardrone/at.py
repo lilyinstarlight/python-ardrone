@@ -3,6 +3,7 @@ import struct
 
 import ardrone.constant
 
+
 def f2i(f):
     """Interpret IEEE-754 floating-point value as signed integer.
 
@@ -10,6 +11,7 @@ def f2i(f):
     f -- floating point value
     """
     return struct.unpack('i', struct.pack('f', f))[0]
+
 
 def ref(host, seq, takeoff, emergency=False):
     """
@@ -26,6 +28,7 @@ def ref(host, seq, takeoff, emergency=False):
     if emergency:
         p |= 0b100000000
     at(host, 'REF', seq, [p])
+
 
 def pcmd(host, seq, progressive, lr, fb, vv, va):
     """
@@ -47,6 +50,7 @@ def pcmd(host, seq, progressive, lr, fb, vv, va):
     p = 1 if progressive else 0
     at(host, 'PCMD', seq, [p, float(lr), float(fb), float(vv), float(va)])
 
+
 def ftrim(host, seq):
     """
     Tell the drone it's lying horizontally.
@@ -55,6 +59,7 @@ def ftrim(host, seq):
     seq -- sequence number
     """
     at(host, 'FTRIM', seq, [])
+
 
 def zap(host, seq, stream):
     """
@@ -67,9 +72,11 @@ def zap(host, seq, stream):
     # FIXME: improve parameters to select the modes directly
     at(host, 'ZAP', seq, [stream])
 
+
 def config(host, seq, option, value):
     """Set configuration parameters of the drone."""
     at(host, 'CONFIG', seq, [str(option), str(value)])
+
 
 def comwdg(host, seq):
     """
@@ -77,6 +84,7 @@ def comwdg(host, seq):
     """
     # FIXME: no sequence number
     at(host, 'COMWDG', seq, [])
+
 
 def aflight(host, seq, flag):
     """
@@ -87,6 +95,7 @@ def aflight(host, seq, flag):
     flag -- Integer: 1: start flight, 0: stop flight
     """
     at(host, 'AFLIGHT', seq, [flag])
+
 
 def pwm(host, seq, m1, m2, m3, m4):
     """
@@ -101,6 +110,7 @@ def pwm(host, seq, m1, m2, m3, m4):
     """
     at(host, 'PWM', seq, [m1, m2, m3, m4])
 
+
 def led(host, seq, anim, f, d):
     """
     Control the drones LED.
@@ -112,6 +122,7 @@ def led(host, seq, anim, f, d):
     d -- Integer: total duration in seconds of the animation
     """
     at(host, 'LED', seq, [anim, float(f), d])
+
 
 def anim(host, seq, anim, d):
     """

@@ -1,5 +1,6 @@
 import struct
 
+
 def decode(packet):
     """Decode a navdata packet."""
     offset = 0
