@@ -33,7 +33,7 @@ def decode(packet):
     state['navdata_thread_on']   = s >> 25 & 1 # Navdata thread ON : (0) thread OFF (1) thread ON
     state['video_thread_on']     = s >> 26 & 1 # Video thread ON : (0) thread OFF (1) thread ON
     state['acq_thread_on']       = s >> 27 & 1 # Acquisition thread ON : (0) thread OFF (1) thread ON
-    state['ctrl_watchdog']       = s >> 28 & 1 # CTRL watchdog : (1) delay in control esecution (> 5ms), (0) control is well scheduled
+    state['ctrl_watchdog']       = s >> 28 & 1 # CTRL watchdog : (1) delay in control execution (> 5ms), (0) control is well scheduled
     state['adc_watchdog']        = s >> 29 & 1 # ADC Watchdog : (1) delay in uart2 dsr (> 5ms), (0) uart2 is good
     state['com_watchdog']        = s >> 30 & 1 # Communication Watchdog : (1) com problem, (0) Com is ok
     state['emergency']           = s >> 31 & 1 # Emergency landing : (0) no emergency, (1) emergency
