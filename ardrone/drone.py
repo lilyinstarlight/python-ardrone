@@ -140,10 +140,10 @@ class ARDrone(object):
         """
         with self.lock:
             self.com_watchdog_timer.cancel()
-            self.video_thread.stop()
-            self.video_thread.join()
-            self.navdata_thread.stop()
-            self.navdata_thread.join()
+            self.ipc_thread.stop()
+            self.ipc_thread.join()
+            self.network_process.terminate()
+            self.network_process.join()
 
     def move(self, lr, fb, vv, va):
         """Makes the drone move (translate/rotate).
