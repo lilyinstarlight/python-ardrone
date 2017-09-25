@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 
 video = Extension(
 	name='ardrone.video',
@@ -9,7 +9,7 @@ video = Extension(
 
 setup(
 	name='ardrone',
-	version='0.1',
+	version='0.2',
 	description='A Python library for controlling the Parrot AR.Drone 2.0 over a network',
 	license='MIT',
 	author='Foster McLane',
