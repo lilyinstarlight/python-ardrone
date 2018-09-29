@@ -34,7 +34,7 @@ struct PaVE {
 	uint8_t reserved1[2]; //padding to align to 48 bytes
 	uint32_t advertised_size; //size of advertised frame
 	uint8_t reserved2[12]; //padding to align to 64 bytes
-} __attribute__ ((packed));
+} __attribute__ (packed);
 
 static PyObject * VideoDecodeError;
 
