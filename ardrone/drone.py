@@ -14,7 +14,7 @@ import ardrone.network
 class ARDrone(object):
     """ARDrone Class.
 
-    Instantiate this class to control your drone and receive decoded video and
+    Instantiate this class to control your drone and receive decoded and
     navdata.
     """
 
@@ -33,15 +33,10 @@ class ARDrone(object):
         self.image = None
         self.navdata = None
 
-        self.video_thread = ardrone.network.VidThread(
-            self.host,
-            self.image_callback
-        )
         self.navdata_thread = ardrone.network.NavThread(
             self.host,
             self.navdata_callback
         )
-        self.video_thread.start()
         self.navdata_thread.start()
 
         self.time = 0
@@ -153,8 +148,6 @@ class ARDrone(object):
         """
         with self.lock:
             self.com_watchdog_timer.cancel()
-            self.video_thread.stop()
-            self.video_thread.join()
             self.navdata_thread.stop()
             self.navdata_thread.join()
 
