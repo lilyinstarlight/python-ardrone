@@ -5,8 +5,6 @@ Python library for the AR.Drone.
 import time
 import threading
 
-import PIL.Image
-
 import ardrone.at
 import ardrone.network
 
@@ -40,10 +38,6 @@ class ARDrone(object):
         self.navdata_thread.start()
 
         self.time = 0
-
-    def image_callback(self, im_data):
-        w, h, img = im_data
-        self.image = PIL.Image.frombuffer('RGB', (w, h), img, 'raw', 'RGB', 0, 1)
 
     def navdata_callback(self, navdata):
         self.navdata = navdata
