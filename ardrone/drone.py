@@ -4,7 +4,6 @@ Python library for the AR.Drone.
 
 import time
 import threading
-import multiprocessing
 
 import PIL.Image
 
@@ -28,17 +27,31 @@ class ARDrone(object):
         self.lock = threading.Lock()
         self.speed = 0.2
         self.at(ardrone.at.config, 'general:navdata_demo', 'TRUE')
+        self.at(ardrone.at.config, 'control:control_level', '3')
         self.at(ardrone.at.config, 'control:altitude_max', '20000')
-        self.video_pipe, video_pipe_other = multiprocessing.Pipe()
-        self.nav_pipe, nav_pipe_other = multiprocessing.Pipe()
-        self.com_pipe, com_pipe_other = multiprocessing.Pipe()
-        self.network_process = ardrone.network.ARDroneNetworkProcess(self.host, nav_pipe_other, video_pipe_other, com_pipe_other)
-        self.network_process.start()
-        self.ipc_thread = ardrone.network.IPCThread(self)
-        self.ipc_thread.start()
-        self.image = PIL.Image.new('RGB', (640, 360))
-        self.navdata = dict()
+
+        self.image = None
+        self.navdata = None
+
+        self.video_thread = ardrone.network.VidThread(
+            self.host,
+            self.image_callback
+        )
+        self.navdata_thread = ardrone.network.NavThread(
+            self.host,
+            self.navdata_callback
+        )
+        self.video_thread.start()
+        self.navdata_thread.start()
+
         self.time = 0
+
+    def image_callback(self, im_data):
+        w, h, img = im_data
+        self.image = PIL.Image.frombuffer('RGB', (w, h), img, 'raw', 'RGB', 0, 1)
+
+    def navdata_callback(self, navdata):
+        self.navdata = navdata
 
     def takeoff(self):
         """Make the drone takeoff."""
@@ -140,10 +153,10 @@ class ARDrone(object):
         """
         with self.lock:
             self.com_watchdog_timer.cancel()
-            self.ipc_thread.stop()
-            self.ipc_thread.join()
-            self.network_process.terminate()
-            self.network_process.join()
+            self.video_thread.stop()
+            self.video_thread.join()
+            self.navdata_thread.stop()
+            self.navdata_thread.join()
 
     def move(self, lr, fb, vv, va):
         """Makes the drone move (translate/rotate).
@@ -156,3 +169,13 @@ class ARDrone(object):
         va -- angular speed: float [-1..1] negative: spin left, positive: spin
             right"""
         self.at(ardrone.at.pcmd, True, lr, fb, vv, va)
+
+    def move2(self, vv, va):
+        """Makes the drone move (up-down and rotate only) while trying
+        to stay above the same point on the ground.
+
+        Parameters:
+        vv -- vertical speed: float [-1..1] negative: go down, positive: rise
+        va -- angular speed: float [-1..1] negative: spin left, positive: spin
+            right"""
+        self.at(ardrone.at.pcmd, False, 0, 0, vv, va)
