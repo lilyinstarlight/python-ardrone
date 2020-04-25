@@ -115,12 +115,11 @@ class ARDrone(object):
         application to close all sockets, pipes, processes and threads related
         with this object.
         """
-        with self.lock:
-            self.atcmd.halt()
-            self.ipc_thread.stop()
-            self.ipc_thread.join()
-            self.network_process.terminate()
-            self.network_process.join()
+        self.atcmd.halt()
+        self.ipc_thread.stop()
+        self.ipc_thread.join()
+        self.network_process.terminate()
+        self.network_process.join()
 
     def move(self, lr, fb, vv, va):
         """Makes the drone move (translate/rotate).

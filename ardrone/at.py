@@ -28,14 +28,15 @@ class ATCommand(object):
         self.seq = 1
         self.interval = 0.2
 
-        self.comwdg_timer = threading.Timer(self.interval, self.comwdg)
         self.lock = threading.Lock()
+        self.comwdg_timer = threading.Timer(self.interval, self.comwdg)
 
     def halt(self):
         """
         Halts communication with the drone
         """
-        self.comwdg_timer.cancel()
+        with self.lock:
+            self.comwdg_timer.cancel()
 
     def ref(self, takeoff, emergency=False):
         """
