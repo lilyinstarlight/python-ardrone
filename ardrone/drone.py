@@ -23,7 +23,7 @@ class ARDrone(object):
 
         self.speed = 0.2
 
-        self.atcmd = ardrone.at.ATCommand(host)
+        self.atcmd = ardrone.at.ATCommand(self.host)
         self.atcmd.config('general:navdata_demo', 'TRUE')
         self.atcmd.config('control:altitude_max', '20000')
         self.video_pipe, video_pipe_other = multiprocessing.Pipe()
