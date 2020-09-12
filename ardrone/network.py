@@ -35,7 +35,6 @@ class ARDroneNetworkProcess(multiprocessing.Process):
 
         nav_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         nav_socket.setblocking(False)
-        nav_socket.bind(('', ardrone.constant.NAVDATA_PORT))
         nav_socket.sendto(b'\x01\x00\x00\x00', (self.host, ardrone.constant.NAVDATA_PORT))
 
         stopping = False
@@ -67,7 +66,7 @@ class ARDroneNetworkProcess(multiprocessing.Process):
                 elif i == nav_socket:
                     while 1:
                         try:
-                            data = nav_socket.recv(65535)
+                            data = nav_socket.recvfrom(65535)
                         except IOError:
                             # we consumed every packet from the socket and
                             # continue with the last one
