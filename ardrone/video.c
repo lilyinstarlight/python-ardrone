@@ -3,37 +3,37 @@
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #if LIBAVUTIL_VERSION_MAJOR > 52
-#include <libavutil/frame.h>
+#include <libavutil/imgutils.h>
 #endif
 #include <libswscale/swscale.h>
 
 struct PaVE {
-	uint8_t signature[4]; //"PaVE"
-	uint8_t version; //protocol version
-	uint8_t video_codec; //codec of frame
-	uint16_t header_size; //size of this header
-	uint32_t payload_size; //size of payload frame
-	uint16_t encoded_stream_width; //encoded width
-	uint16_t encoded_stream_height; //encoded height
-	uint16_t display_width; //actual width
-	uint16_t display_height; //actual height
+	uint8_t signature[4]; // "PaVE"
+	uint8_t version; // protocol version
+	uint8_t video_codec; // codec of frame
+	uint16_t header_size; // size of this header
+	uint32_t payload_size; // size of payload frame
+	uint16_t encoded_stream_width; // encoded width
+	uint16_t encoded_stream_height; // encoded height
+	uint16_t display_width; // actual width
+	uint16_t display_height; // actual height
 
-	uint32_t frame_number; //current frame
-	uint32_t timestamp; //timestamp in milliseconds of frame
-	uint8_t total_chunks; //number of packets for frame (unused)
-	uint8_t chunck_index; //current packet number for frame (unused)
-	uint8_t frame_type; //I-frame or P-frame
-	uint8_t control; //control command (e.g. end of stream, advertised frames)
-	uint32_t stream_byte_position_lw; //lower word of byte position in stream
-	uint32_t stream_byte_position_uw; //upper word of byte position in stream
-	uint16_t stream_id; //current stream this frame is associated with
-	uint8_t total_slices; //number of slices in frame
-	uint8_t slice_index; //position of current slice
-	uint8_t header1_size; //size of SPS in frame (h.264 only)
-	uint8_t header2_size; //size of PPS in frame (h.264 only)
-	uint8_t reserved1[2]; //padding to align to 48 bytes
-	uint32_t advertised_size; //size of advertised frame
-	uint8_t reserved2[12]; //padding to align to 64 bytes
+	uint32_t frame_number; // current frame
+	uint32_t timestamp; // timestamp in milliseconds of frame
+	uint8_t total_chunks; // number of packets for frame (unused)
+	uint8_t chunck_index; // current packet number for frame (unused)
+	uint8_t frame_type; // I-frame or P-frame
+	uint8_t control; // control command (e.g. end of stream, advertised frames)
+	uint32_t stream_byte_position_lw; // lower word of byte position in stream
+	uint32_t stream_byte_position_uw; // upper word of byte position in stream
+	uint16_t stream_id; // current stream this frame is associated with
+	uint8_t total_slices; // number of slices in frame
+	uint8_t slice_index; // position of current slice
+	uint8_t header1_size; // size of SPS in frame (h.264 only)
+	uint8_t header2_size; // size of PPS in frame (h.264 only)
+	uint8_t reserved1[2]; // padding to align to 48 bytes
+	uint32_t advertised_size; // size of advertised frame
+	uint8_t reserved2[12]; // padding to align to 64 bytes
 } __attribute__ ((packed));
 
 static PyObject * VideoDecodeError;
@@ -72,7 +72,7 @@ PyMODINIT_FUNC initvideo(void) {
 #else
 	module = Py_InitModule("ardrone.video", VideoMethods);
 #endif
-	if(module == NULL)
+	if (module == NULL)
 #if PY_MAJOR_VERSION > 2
 		return NULL;
 #else
@@ -83,11 +83,16 @@ PyMODINIT_FUNC initvideo(void) {
 	Py_INCREF(VideoDecodeError);
 	PyModule_AddObject(module, "DecodeError", VideoDecodeError);
 
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(58, 9, 100)
 	av_register_all();
+
+#endif
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 10, 100)
 	avcodec_register_all();
 
+#endif
 	codec = avcodec_find_decoder(AV_CODEC_ID_H264);
-	if(!codec) {
+	if (!codec) {
 		PyErr_SetString(VideoDecodeError, "could not find h.264 decoder");
 #if PY_MAJOR_VERSION > 2
 		return NULL;
@@ -97,7 +102,7 @@ PyMODINIT_FUNC initvideo(void) {
 	}
 
 	context = avcodec_alloc_context3(codec);
-	if(!context) {
+	if (!context) {
 		PyErr_NoMemory();
 #if PY_MAJOR_VERSION > 2
 		return NULL;
@@ -107,7 +112,7 @@ PyMODINIT_FUNC initvideo(void) {
 	}
 
 	avcodec_get_context_defaults3(context, codec);
-	if(avcodec_open2(context, codec, NULL) < 0) {
+	if (avcodec_open2(context, codec, NULL) < 0) {
 		PyErr_SetString(VideoDecodeError, "could not open h.264 codec");
 #if PY_MAJOR_VERSION > 2
 		return NULL;
@@ -121,7 +126,7 @@ PyMODINIT_FUNC initvideo(void) {
 #else
 	frame = avcodec_alloc_frame();
 #endif
-	if(!frame) {
+	if (!frame) {
 		PyErr_NoMemory();
 #if PY_MAJOR_VERSION > 2
 		return NULL;
@@ -144,9 +149,11 @@ static PyObject * video_decode(PyObject * self, PyObject * args) {
 
 	AVPacket packet;
 
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(57, 106, 102)
 	int got_frame;
 	int frame_size;
 
+#endif
 	unsigned char * image;
 	int image_width;
 	int image_height;
@@ -157,18 +164,18 @@ static PyObject * video_decode(PyObject * self, PyObject * args) {
 
 	PyObject * py_image;
 
-	if(!PyArg_ParseTuple(args, "s#", &data, &data_size))
+	if (!PyArg_ParseTuple(args, "s#", &data, &data_size))
 		return NULL;
 
 	header = *((struct PaVE *)data);
 	payload = data + header.header_size;
 
-	if(memcmp(header.signature, "PaVE", 4) != 0) {
+	if (memcmp(header.signature, "PaVE", 4) != 0) {
 		PyErr_SetString(VideoDecodeError, "packet did not have correct signature");
 		return NULL;
 	}
 
-	if(header.header_size + header.payload_size != data_size) {
+	if (header.header_size + header.payload_size != (unsigned int)data_size) {
 		PyErr_SetString(VideoDecodeError, "packet size did not match expected size from header");
 		return NULL;
 	}
@@ -180,16 +187,27 @@ static PyObject * video_decode(PyObject * self, PyObject * args) {
 	packet.data = payload;
 	packet.size = header.payload_size;
 
-	frame_size = avcodec_decode_video2(context, frame, &got_frame, &packet);
-	if(frame_size < 0 || !got_frame) {
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(57, 106, 102)
+	if (avcodec_send_packet(context, &packet) != 0 || avcodec_receive_frame(context, frame) != 0) {
 		PyErr_SetString(VideoDecodeError, "could not decode frame");
 		return NULL;
 	}
+#else
+	frame_size = avcodec_decode_video2(context, frame, &got_frame, &packet);
+	if (frame_size < 0 || !got_frame) {
+		PyErr_SetString(VideoDecodeError, "could not decode frame");
+		return NULL;
+	}
+#endif
 
 	image_width = frame->width;
 	image_height = frame->height;
 
+#if LIBAVUTIL_VERSION_MAJOR > 52
+	image_size = av_image_get_buffer_size(AV_PIX_FMT_RGB24, image_width, image_height, 1)*sizeof(uint8_t);
+#else
 	image_size = avpicture_get_size(AV_PIX_FMT_RGB24, image_width, image_height)*sizeof(uint8_t);
+#endif
 
 	image = (unsigned char *)av_malloc(image_size);
 
